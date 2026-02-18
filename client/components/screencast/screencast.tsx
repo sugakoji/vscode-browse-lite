@@ -77,7 +77,6 @@ class Screencast extends React.Component<any, any> {
         onWheel={this.handleMouseEvent}
         onKeyDown={this.handleKeyEvent}
         onKeyUp={this.handleKeyEvent}
-        onKeyPress={this.handleKeyEvent}
         onContextMenu={this.handleContextMenu}
         tabIndex={0}
       />
@@ -174,14 +173,14 @@ class Screencast extends React.Component<any, any> {
       case 'keyup':
         type = 'keyUp'
         break
-      case 'keypress':
-        type = 'char'
-        break
       default:
         return
     }
 
-    const text = event.type === 'keypress' ? String.fromCharCode(event.charCode) : undefined
+    // Send text with keyDown instead of separate keypress/char event.
+    // Chrome 128+ delays Input.dispatchKeyEvent acknowledgment, and the
+    // deprecated 'char' type can stall the CDP pipeline causing freezes.
+    const text = type === 'keyDown' && event.key.length === 1 ? event.key : undefined
     const params = {
       type,
       modifiers: this.modifiersForEvent(event),
