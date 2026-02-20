@@ -26,17 +26,28 @@ export class BrowserClient extends EventEmitter {
 
     chromeArgs.push(`--remote-debugging-port=${this.config.debugPort}`)
 
-    chromeArgs.push('--allow-file-access-from-files')
+    chromeArgs.push(`--remote-allow-origins=http://localhost:${this.config.debugPort},http://127.0.0.1:${this.config.debugPort}`)
 
-    chromeArgs.push('--remote-allow-origins=*')
+    if (this.config.proxy && this.config.proxy.length > 0) {
+      if (/^https?:\/\/[^/\s]+:\d+$/.test(this.config.proxy))
+        chromeArgs.push(`--proxy-server=${this.config.proxy}`)
+    }
 
-    // chromeArgs.push('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36')
-
-    if (this.config.proxy && this.config.proxy.length > 0)
-      chromeArgs.push(`--proxy-server=${this.config.proxy}`)
-
-    if (this.config.otherArgs && this.config.otherArgs.length > 0)
-      chromeArgs.push(this.config.otherArgs)
+    if (this.config.otherArgs && this.config.otherArgs.length > 0) {
+      const denylist = [
+        '--disable-web-security',
+        '--allow-file-access-from-files',
+        '--allow-file-access',
+        '--disable-site-isolation-trials',
+        '--allow-running-insecure-content',
+      ]
+      const filtered = this.config.otherArgs
+        .split(/\s+/)
+        .filter(arg => !denylist.some(denied => arg.startsWith(denied)))
+        .join(' ')
+      if (filtered.length > 0)
+        chromeArgs.push(filtered)
+    }
 
     const chromePath = this.config.chromeExecutable || this.getChromiumPath()
 

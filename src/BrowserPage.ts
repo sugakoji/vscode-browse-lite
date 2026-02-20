@@ -12,6 +12,13 @@ enum ExposedFunc {
 export class BrowserPage extends EnhancedEventEmitter {
   private client: CDPSession
   private clipboard: Clipboard
+  public isActive = true
+
+  private static ALLOWED_CLIPBOARD_EXPRESSIONS = [
+    'document.execCommand(\'copy\')',
+    'document.execCommand(\'cut\')',
+    'document.execCommand(\'paste\')',
+  ]
 
   constructor(
     public readonly browser: Browser,
@@ -65,6 +72,16 @@ export class BrowserPage extends EnhancedEventEmitter {
         }
         break
       default:
+        if (action === 'Runtime.evaluate') {
+          const expression = (data as any).expression
+          if (typeof expression !== 'string' || !BrowserPage.ALLOWED_CLIPBOARD_EXPRESSIONS.includes(expression)) {
+            this.emit({
+              callbackId,
+              error: 'Runtime.evaluate: expression not allowed',
+            } as any)
+            break
+          }
+        }
         this.client
           .send(action as any, data)
           .then((result: any) => {
@@ -85,9 +102,17 @@ export class BrowserPage extends EnhancedEventEmitter {
   public async launch(): Promise<void> {
     await Promise.allSettled([
       // TODO setting for enable sync copy and paste
-      this.page.exposeFunction(ExposedFunc.EnableCopyPaste, () => true),
-      this.page.exposeFunction(ExposedFunc.EmitCopy, (text: string) => this.clipboard.writeText(text)),
-      this.page.exposeFunction(ExposedFunc.GetPaste, () => this.clipboard.readText()),
+      this.page.exposeFunction(ExposedFunc.EnableCopyPaste, () => this.isActive),
+      this.page.exposeFunction(ExposedFunc.EmitCopy, (text: string) => {
+        if (!this.isActive)
+          return
+        return this.clipboard.writeText(text)
+      }),
+      this.page.exposeFunction(ExposedFunc.GetPaste, () => {
+        if (!this.isActive)
+          return ''
+        return this.clipboard.readText()
+      }),
     ])
     this.page.evaluateOnNewDocument(() => {
       // custom embedded devtools

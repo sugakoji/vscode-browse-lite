@@ -55,7 +55,9 @@ export function getConfigs(ctx: ExtensionContext): ExtensionConfiguration {
     isVerboseMode: getConfig('browse-lite.verbose', false),
     chromeExecutable: getConfig('browse-lite.chromeExecutable'),
     startUrl: getConfig('browse-lite.startUrl', 'https://github.com/antfu/vscode-browse-lite'),
-    debugHost: getConfig('browse-lite.debugHost', 'localhost'),
+    debugHost: ['localhost', '127.0.0.1'].includes(getConfig('browse-lite.debugHost', 'localhost'))
+      ? getConfig('browse-lite.debugHost', 'localhost')
+      : 'localhost',
     debugPort: getConfig('browse-lite.debugPort', 9222),
     storeUserData: getConfig('browse-lite.storeUserData', true),
     proxy: getConfig('browse-lite.proxy', ''),

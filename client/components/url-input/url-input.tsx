@@ -177,9 +177,13 @@ class UrlInput extends React.Component<any, IUrlInputState> {
 
   private enterUrl() {
     let url = this.state.url.trimLeft()
-    const schemeRegex = /^(https?|about|chrome|file):/
+    const allowedSchemeRegex = /^https?:/
+    const blockedSchemeRegex = /^(?:javascript|data|file|chrome):/i
 
-    if (!url.match(schemeRegex))
+    if (blockedSchemeRegex.test(url))
+      return
+
+    if (!url.match(allowedSchemeRegex))
       url = `http://${this.state.url}`
 
     this.setState({

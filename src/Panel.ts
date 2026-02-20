@@ -8,6 +8,38 @@ import { EventEmitter2 } from 'eventemitter2'
 import { commands, env, Position, Selection, Uri, ViewColumn, window, workspace } from 'vscode'
 import { ContentProvider } from './ContentProvider'
 
+const CDP_COMMAND_WHITELIST = new Set([
+  'Page.enable',
+  'Page.navigate',
+  'Page.reload',
+  'Page.goForward',
+  'Page.goBackward',
+  'Page.startScreencast',
+  'Page.stopScreencast',
+  'Page.screencastFrameAck',
+  'Page.getNavigationHistory',
+  'Page.setDeviceMetricsOverride',
+  'Page.handleJavaScriptDialog',
+  'Input.dispatchMouseEvent',
+  'Input.dispatchKeyEvent',
+  'DOM.enable',
+  'DOM.getDocument',
+  'DOM.getNodeForLocation',
+  'DOM.resolveNode',
+  'DOM.getBoxModel',
+  'DOM.pushNodesByBackendIdsToFrontend',
+  'CSS.enable',
+  'CSS.getComputedStyleForNode',
+  'Overlay.enable',
+  'Overlay.highlightNode',
+  'Overlay.hideHighlight',
+  'Overlay.inspectNodeRequested',
+  'Network.setUserAgentOverride',
+  'Runtime.evaluate',
+  'Runtime.getProperties',
+  'Clipboard.readText',
+])
+
 export class Panel extends EventEmitter2 {
   private static readonly viewType = 'browse-lite'
   private _panel: WebviewPanel | null
@@ -68,17 +100,18 @@ export class Panel extends EventEmitter2 {
     )
     this._panel.webview.html = this.contentProvider.getContent(this._panel.webview)
     this._panel.onDidDispose(() => this.dispose(), null, this.disposables)
-    this._panel.onDidChangeViewState(() => this.emit(this._panel.active ? 'focus' : 'blur'), null, this.disposables)
+    this._panel.onDidChangeViewState(() => {
+      if (this.browserPage)
+        this.browserPage.isActive = this._panel!.active
+      this.emit(this._panel!.active ? 'focus' : 'blur')
+    }, null, this.disposables)
     this._panel.webview.onDidReceiveMessage(
       (msg) => {
         if (msg.type === 'extension.updateTitle') {
           this.title = msg.params.title
           if (this._panel) {
             this._panel.title = this.isDebugPage ? `DevTools - ${this.parentPanel.title}` : msg.params.title
-            try {
-              this._panel.iconPath = Uri.parse(`https://favicon.yandex.net/favicon/${new URL(this.browserPage?.page.url() || '').hostname}`)
-            }
-            catch (err) {}
+            this._panel.iconPath = Uri.file(path.join(this.config.extensionPath, 'resources', 'icon.png'))
             return
           }
         }
@@ -129,11 +162,11 @@ export class Panel extends EventEmitter2 {
 
         if (this.browserPage) {
           try {
-            // not sure about this one but this throws later with unhandled
-            // 'extension.appStateChanged' message
-            if (msg.type !== 'extension.appStateChanged')
+            if (msg.type !== 'extension.appStateChanged') {
+              if (!msg.type.startsWith('extension.') && !CDP_COMMAND_WHITELIST.has(msg.type))
+                return
               this.browserPage.send(msg.type, msg.params, msg.callbackId)
-
+            }
             this.emit(msg.type, msg.params)
           }
           catch (err) {
@@ -153,7 +186,13 @@ export class Panel extends EventEmitter2 {
     this._panel.webview.postMessage({
       method: 'extension.appConfiguration',
       result: {
-        ...this.config,
+        extensionPath: this.config.extensionPath,
+        columnNumber: this.config.columnNumber,
+        format: this.config.format,
+        quality: this.config.quality,
+        everyNthFrame: this.config.everyNthFrame,
+        isVerboseMode: this.config.isVerboseMode,
+        startUrl: this.config.startUrl,
         isDebug: this.isDebugPage,
       },
     })
@@ -252,8 +291,16 @@ export class Panel extends EventEmitter2 {
     const lineNumber = params.lineNumber
     const columnNumber = params.columnNumber | params.charNumber | 0
 
-    const workspacePath = `${workspace.rootPath || ''}/`
-    const relativePath = params.fileName.replace(workspacePath, '')
+    const workspacePath = workspace.rootPath
+    if (!workspacePath)
+      return
+
+    const resolvedPath = path.resolve(workspacePath, params.fileName)
+    const normalizedWorkspace = path.resolve(workspacePath) + path.sep
+    if (!resolvedPath.startsWith(normalizedWorkspace))
+      return
+
+    const relativePath = path.relative(workspacePath, resolvedPath)
 
     workspace.findFiles(relativePath, '', 1).then((file) => {
       if (!file || !file.length)
