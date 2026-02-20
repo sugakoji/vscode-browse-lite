@@ -29,6 +29,7 @@ const CDP_COMMAND_WHITELIST = new Set([
   'Page.handleJavaScriptDialog',
   'Input.dispatchMouseEvent',
   'Input.dispatchKeyEvent',
+  'Input.insertText',
   'DOM.enable',
   'DOM.getDocument',
   'DOM.getNodeForLocation',
@@ -45,6 +46,7 @@ const CDP_COMMAND_WHITELIST = new Set([
   'Runtime.evaluate',
   'Runtime.getProperties',
   'Clipboard.readText',
+  'Clipboard.writeText',
 ])
 
 export class Panel extends EventEmitter2 {

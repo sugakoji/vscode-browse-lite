@@ -15,9 +15,9 @@ export class BrowserPage extends EnhancedEventEmitter {
   public isActive = true
 
   private static ALLOWED_CLIPBOARD_EXPRESSIONS = [
-    'document.execCommand(\'copy\')',
-    'document.execCommand(\'cut\')',
-    'document.execCommand(\'paste\')',
+    'document.dispatchEvent(new ClipboardEvent("copy"))',
+    'document.execCommand("cut")',
+    'document.dispatchEvent(new ClipboardEvent("paste"))',
   ]
 
   constructor(
@@ -69,6 +69,17 @@ export class BrowserPage extends EnhancedEventEmitter {
             callbackId,
             error: e.message,
           } as any)
+        }
+        break
+      case 'Clipboard.writeText':
+        try {
+          const value = (data as any).value
+          if (typeof value === 'string')
+            await this.clipboard.writeText(value)
+          this.emit({ callbackId, result: {} } as any)
+        }
+        catch (e) {
+          this.emit({ callbackId, error: e.message } as any)
         }
         break
       default:

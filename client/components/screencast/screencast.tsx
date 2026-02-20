@@ -6,16 +6,23 @@ import './screencast.css'
 class Screencast extends React.Component<any, any> {
   private canvasRef: React.RefObject<HTMLCanvasElement>
   private imageRef: React.RefObject<HTMLImageElement>
+  private inputRef: React.RefObject<HTMLTextAreaElement>
   private frameId: number | null
+  private isComposing = false
 
   constructor(props: any) {
     super(props)
     this.canvasRef = React.createRef()
     this.imageRef = React.createRef()
+    this.inputRef = React.createRef()
     this.frameId = null
 
     this.handleMouseEvent = this.handleMouseEvent.bind(this)
-    this.handleKeyEvent = this.handleKeyEvent.bind(this)
+    this.handleKeyDown = this.handleKeyDown.bind(this)
+    this.handleKeyUp = this.handleKeyUp.bind(this)
+    this.handleCompositionStart = this.handleCompositionStart.bind(this)
+    this.handleCompositionEnd = this.handleCompositionEnd.bind(this)
+    this.handleInput = this.handleInput.bind(this)
     this.renderLoop = this.renderLoop.bind(this)
 
     this.state = {
@@ -63,28 +70,45 @@ class Screencast extends React.Component<any, any> {
     const format = this.props.format
 
     return (
-      <img
-        className="screencast"
-        src={`data:image/${format};base64,${base64Data}`}
-        ref={this.imageRef}
-        style={canvasStyle}
-        width={this.props.width}
-        draggable="false"
-        onMouseDown={this.handleMouseEvent}
-        onMouseUp={this.handleMouseEvent}
-        onMouseMove={this.handleMouseEvent}
-        onClick={this.handleMouseEvent}
-        onWheel={this.handleMouseEvent}
-        onKeyDown={this.handleKeyEvent}
-        onKeyUp={this.handleKeyEvent}
-        onContextMenu={this.handleContextMenu}
-        tabIndex={0}
-      />
+      <div className="screencast-wrapper">
+        <img
+          className="screencast"
+          src={`data:image/${format};base64,${base64Data}`}
+          ref={this.imageRef}
+          style={canvasStyle}
+          width={this.props.width}
+          draggable="false"
+          onMouseDown={this.handleMouseEvent}
+          onMouseUp={this.handleMouseEvent}
+          onMouseMove={this.handleMouseEvent}
+          onClick={this.handleMouseEvent}
+          onWheel={this.handleMouseEvent}
+          onContextMenu={this.handleContextMenu}
+        />
+        <textarea
+          ref={this.inputRef}
+          className="screencast-input"
+          onKeyDown={this.handleKeyDown}
+          onKeyUp={this.handleKeyUp}
+          onCompositionStart={this.handleCompositionStart}
+          onCompositionEnd={this.handleCompositionEnd}
+          onInput={this.handleInput}
+          tabIndex={0}
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck={false}
+        />
+      </div>
     )
   }
 
   private handleContextMenu(event: React.MouseEvent<HTMLImageElement>) {
     event.preventDefault()
+  }
+
+  private focusInput() {
+    if (this.inputRef.current)
+      this.inputRef.current.focus()
   }
 
   private handleMouseEvent(event: React.MouseEvent<HTMLImageElement>) {
@@ -114,10 +138,8 @@ class Screencast extends React.Component<any, any> {
       })
     }
 
-    if (event.type === 'mousedown') {
-      if (this.canvasRef.current)
-        this.canvasRef.current.focus()
-    }
+    if (event.type === 'mousedown')
+      this.focusInput()
   }
 
   private convertIntoScreenSpace(event: any, state: any) {
@@ -134,16 +156,46 @@ class Screencast extends React.Component<any, any> {
     }
   }
 
-  private handleKeyEvent(event: React.KeyboardEvent<HTMLImageElement>) {
-    // Prevents events from penetrating into toolbar input
+  private handleCompositionStart() {
+    this.isComposing = true
+  }
+
+  private handleCompositionEnd(event: React.CompositionEvent<HTMLTextAreaElement>) {
+    this.isComposing = false
+    if (event.data)
+      this.props.onInteraction('Input.insertText', { text: event.data })
+
+    // Clear the textarea after composition
+    if (this.inputRef.current)
+      this.inputRef.current.value = ''
+  }
+
+  private handleInput(event: React.FormEvent<HTMLTextAreaElement>) {
+    // During composition, let the IME handle everything.
+    // Non-composition input is handled by handleKeyDown instead.
+    if (!this.isComposing && this.inputRef.current)
+      this.inputRef.current.value = ''
+  }
+
+  private handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
     event.stopPropagation()
+
+    if (this.isComposing || event.nativeEvent.isComposing || event.key === 'Process')
+      return
+
     this.emitKeyEvent(event.nativeEvent)
 
     if (event.key === 'Tab')
       event.preventDefault()
+  }
 
-    if (this.canvasRef.current)
-      this.canvasRef.current.focus()
+  private handleKeyUp(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+    event.stopPropagation()
+
+    if (this.isComposing || event.nativeEvent.isComposing || event.key === 'Process')
+      return
+
+    this.emitKeyEvent(event.nativeEvent)
   }
 
   private modifiersForEvent(event: any) {

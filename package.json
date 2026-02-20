@@ -20,7 +20,7 @@
   "main": "./dist/extension.js",
   "icon": "resources/icon.png",
   "engines": {
-    "vscode": "^1.83.0"
+    "vscode": "^1.96.0"
   },
   "activationEvents": [
     "onOpenExternalUri:http",
