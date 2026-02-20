@@ -7,6 +7,13 @@ export function getConfig<T>(key: string, v?: T) {
   return workspace.getConfiguration().get(key, v)
 }
 
+function getUserConfig<T>(key: string, v?: T): T {
+  const inspect = workspace.getConfiguration().inspect<T>(key)
+  if (!workspace.isTrusted)
+    return inspect?.globalValue ?? v!
+  return inspect?.workspaceValue ?? inspect?.globalValue ?? v!
+}
+
 export function isDarkTheme() {
   const theme = getConfig('workbench.colorTheme', '').toLowerCase()
 
@@ -53,14 +60,14 @@ export function getConfigs(ctx: ExtensionContext): ExtensionConfiguration {
     everyNthFrame: getConfig('browse-lite.everyNthFrame', 1),
     format: getConfig('browse-lite.format', 'png'),
     isVerboseMode: getConfig('browse-lite.verbose', false),
-    chromeExecutable: getConfig('browse-lite.chromeExecutable'),
+    chromeExecutable: getUserConfig('browse-lite.chromeExecutable'),
     startUrl: getConfig('browse-lite.startUrl', 'https://github.com/antfu/vscode-browse-lite'),
     debugHost: ['localhost', '127.0.0.1'].includes(getConfig('browse-lite.debugHost', 'localhost'))
       ? getConfig('browse-lite.debugHost', 'localhost')
       : 'localhost',
     debugPort: getConfig('browse-lite.debugPort', 9222),
     storeUserData: getConfig('browse-lite.storeUserData', true),
-    proxy: getConfig('browse-lite.proxy', ''),
-    otherArgs: getConfig('browse-lite.otherArgs', ''),
+    proxy: getUserConfig('browse-lite.proxy', ''),
+    otherArgs: getUserConfig('browse-lite.otherArgs', ''),
   }
 }

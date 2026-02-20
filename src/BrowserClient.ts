@@ -61,8 +61,9 @@ export class BrowserClient extends EventEmitter {
     if (platform() === 'linux')
       chromeArgs.push('--no-sandbox')
 
-    const extensionSettings = workspace.getConfiguration('browse-lite')
-    const ignoreHTTPSErrors = extensionSettings.get<boolean>('ignoreHttpsErrors')
+    const ignoreHTTPSErrors = workspace.isTrusted
+      ? workspace.getConfiguration('browse-lite').get<boolean>('ignoreHttpsErrors')
+      : false
 
     let userDataDir
     if (this.config.storeUserData)
