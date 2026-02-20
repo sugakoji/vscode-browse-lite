@@ -1,12 +1,12 @@
-import React from 'react'
-import './App.css'
-
-import { resolve as getElementSourceMetadata } from 'element-to-source'
 import type { ExtensionConfiguration } from '../src/ExtensionConfiguration'
+import { resolve as getElementSourceMetadata } from 'element-to-source'
+
+import React from 'react'
 import Toolbar from './components/toolbar/toolbar'
 import Viewport from './components/viewport/viewport'
 import Connection from './connection'
 import { CDPHelper } from './utils/cdpHelper'
+import './App.css'
 
 interface ElementSource {
   charNumber: number
@@ -58,7 +58,7 @@ class App extends React.Component<any, IState> {
   private connection: Connection
   private viewport: Viewport = undefined!
   private cdpHelper: CDPHelper
-  private nextViewportSize: { width: number; height: number } | undefined
+  private nextViewportSize: { width: number, height: number } | undefined
 
   constructor(props: any) {
     super(props)
@@ -248,15 +248,15 @@ class App extends React.Component<any, IState> {
           this.state.isDebug
             ? null
             : (
-              <Toolbar
-                url={this.state.url}
-                viewport={this.state.viewportMetadata}
-                onActionInvoked={this.onToolbarActionInvoked}
-                canGoBack={this.state.history.canGoBack}
-                canGoForward={this.state.history.canGoForward}
-                isInspectEnabled={this.state.isInspectEnabled}
-                isDeviceEmulationEnabled={this.state.isDeviceEmulationEnabled}
-              />
+                <Toolbar
+                  url={this.state.url}
+                  viewport={this.state.viewportMetadata}
+                  onActionInvoked={this.onToolbarActionInvoked}
+                  canGoBack={this.state.history.canGoBack}
+                  canGoForward={this.state.history.canGoForward}
+                  isInspectEnabled={this.state.isInspectEnabled}
+                  isDeviceEmulationEnabled={this.state.isDeviceEmulationEnabled}
+                />
               )
         }
         <Viewport

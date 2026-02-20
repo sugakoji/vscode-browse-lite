@@ -1,8 +1,8 @@
 import React from 'react'
-import './toolbar.css'
+import DeviceSettings from '../device-settings/device-settings'
 
 import UrlInput from '../url-input/url-input'
-import DeviceSettings from '../device-settings/device-settings'
+import './toolbar.css'
 
 export function CarbonArrowLeft(props: React.SVGProps<SVGSVGElement>) {
   return (

@@ -1,11 +1,11 @@
-import React from 'react'
-import './viewport.css'
-
-import { Resizable } from 're-resizable'
 import debounce from 'lodash/debounce'
+import { Resizable } from 're-resizable'
+
+import React from 'react'
+import { ErrorPage } from '../error-page/error-page'
 import Loading from '../loading-bar/loading-bar'
 import Screencast from '../screencast/screencast'
-import { ErrorPage } from '../error-page/error-page'
+import './viewport.css'
 
 class Viewport extends React.Component<any, any> {
   private viewportRef: React.RefObject<HTMLDivElement>
@@ -80,44 +80,44 @@ class Viewport extends React.Component<any, any> {
         {
           this.props.errorText
             ? (
-              <ErrorPage
-                errorText={this.props.errorText}
-                onActionInvoked={this.onActionInvoked}
-              />
+                <ErrorPage
+                  errorText={this.props.errorText}
+                  onActionInvoked={this.onActionInvoked}
+                />
               )
             : (
-              <Resizable
-                className="viewport-resizable-wrap"
-                size={{
-                  width,
-                  height,
-                }}
-                onResizeStop={this.handleResizeStop}
-                enable={resizableEnableOptions}
-                handleClasses={{
-                  bottom: 'viewport-resizer resizer-bottom',
-                  bottomRight: 'viewport-resizer resizer-bottom-right',
-                  bottomLeft: 'viewport-resizer resizer-bottom-left',
-                  left: 'viewport-resizer resizer-left',
-                  right: 'viewport-resizer resizer-right',
-                  top: 'viewport-resizer resizer-top',
-                  topRight: 'viewport-resizer resizer-top-right',
-                  topLeft: 'viewport-resizer resizer-top-left',
-                }}
-              >
-                <Screencast
-                  height={height}
-                  width={width}
-                  frame={this.props.frame}
-                  format={this.props.format}
-                  viewportMetadata={viewport}
-                  isInspectEnabled={this.props.isInspectEnabled}
-                  onInspectElement={this.handleInspectElement}
-                  onInspectHighlightRequested={this.handleInspectHighlightRequested}
-                  onInteraction={this.handleScreencastInteraction}
-                  onMouseMoved={this.handleMouseMoved}
-                />
-              </Resizable>
+                <Resizable
+                  className="viewport-resizable-wrap"
+                  size={{
+                    width,
+                    height,
+                  }}
+                  onResizeStop={this.handleResizeStop}
+                  enable={resizableEnableOptions}
+                  handleClasses={{
+                    bottom: 'viewport-resizer resizer-bottom',
+                    bottomRight: 'viewport-resizer resizer-bottom-right',
+                    bottomLeft: 'viewport-resizer resizer-bottom-left',
+                    left: 'viewport-resizer resizer-left',
+                    right: 'viewport-resizer resizer-right',
+                    top: 'viewport-resizer resizer-top',
+                    topRight: 'viewport-resizer resizer-top-right',
+                    topLeft: 'viewport-resizer resizer-top-left',
+                  }}
+                >
+                  <Screencast
+                    height={height}
+                    width={width}
+                    frame={this.props.frame}
+                    format={this.props.format}
+                    viewportMetadata={viewport}
+                    isInspectEnabled={this.props.isInspectEnabled}
+                    onInspectElement={this.handleInspectElement}
+                    onInspectHighlightRequested={this.handleInspectHighlightRequested}
+                    onInteraction={this.handleScreencastInteraction}
+                    onMouseMoved={this.handleMouseMoved}
+                  />
+                </Resizable>
               )
         }
       </div>
@@ -190,8 +190,9 @@ class Viewport extends React.Component<any, any> {
       if (
         viewportWidth === Math.floor(viewport.width)
         && viewportHeight === Math.floor(viewport.height)
-      )
+      ) {
         return
+      }
 
       // console.log('viewport.calculateViewportSize.emitChange')
 

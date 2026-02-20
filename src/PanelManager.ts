@@ -1,11 +1,11 @@
 import type { ExtensionContext, Uri } from 'vscode'
-import { commands, workspace } from 'vscode'
+import type { ExtensionConfiguration } from './ExtensionConfiguration'
 import * as EventEmitter from 'eventemitter2'
 
+import { commands, workspace } from 'vscode'
 import { BrowserClient } from './BrowserClient'
 import { getConfig, getConfigs } from './Config'
 import { Panel } from './Panel'
-import type { ExtensionConfiguration } from './ExtensionConfiguration'
 
 export class PanelManager extends EventEmitter.EventEmitter2 {
   public panels: Set<Panel>

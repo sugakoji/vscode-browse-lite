@@ -1,15 +1,15 @@
-import React from 'react'
 import type {
   IContextMenuItemProps,
   IContextMenuItemState,
 } from './contextmenu-models'
+import React from 'react'
 import {
   ContextMenuItemsType,
 } from './contextmenu-models'
 
 class ContextMenuItem extends React.Component<
-IContextMenuItemProps,
-IContextMenuItemState
+  IContextMenuItemProps,
+  IContextMenuItemState
 > {
   constructor(props: IContextMenuItemProps) {
     super(props)

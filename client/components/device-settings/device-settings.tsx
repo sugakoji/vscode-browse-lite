@@ -1,7 +1,7 @@
-import React from 'react'
-
 // @ts-expect-error
 import devices from 'browser-viewport-device-descriptions'
+
+import React from 'react'
 import './device-settings.css'
 
 class DeviceSettings extends React.Component<any, any> {

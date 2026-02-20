@@ -1,6 +1,6 @@
 import type { CancellationToken, DebugAdapterTracker, DebugConfiguration, DebugConfigurationProvider, DebugSession, ProviderResult, WorkspaceFolder } from 'vscode'
-import { debug, window } from 'vscode'
 import type { PanelManager } from './PanelManager'
+import { debug, window } from 'vscode'
 import { getUnderlyingDebugType } from './UnderlyingDebugAdapter'
 
 export class DebugProvider {
