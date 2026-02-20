@@ -14,3 +14,22 @@ img.screencast {
   max-height: unset !important;
   max-width: unset !important;
 }
+
+.screencast-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: none;
+  padding: 0;
+  margin: 0;
+  resize: none;
+  outline: none;
+  overflow: hidden;
+  background: transparent;
+  color: transparent;
+  caret-color: transparent;
+  z-index: 1;
+}
