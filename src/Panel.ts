@@ -15,39 +15,20 @@ const CDP_EVENT_DENYLIST_PREFIXES = [
   'Storage.',
 ]
 
-const CDP_COMMAND_WHITELIST = new Set([
-  'Page.enable',
-  'Page.navigate',
-  'Page.reload',
-  'Page.goForward',
-  'Page.goBackward',
-  'Page.startScreencast',
-  'Page.stopScreencast',
-  'Page.screencastFrameAck',
-  'Page.getNavigationHistory',
-  'Page.setDeviceMetricsOverride',
-  'Page.handleJavaScriptDialog',
-  'Input.dispatchMouseEvent',
-  'Input.dispatchKeyEvent',
-  'Input.insertText',
-  'DOM.enable',
-  'DOM.getDocument',
-  'DOM.getNodeForLocation',
-  'DOM.resolveNode',
-  'DOM.getBoxModel',
-  'DOM.pushNodesByBackendIdsToFrontend',
-  'CSS.enable',
-  'CSS.getComputedStyleForNode',
-  'Overlay.enable',
-  'Overlay.highlightNode',
-  'Overlay.hideHighlight',
-  'Overlay.inspectNodeRequested',
-  'Network.setUserAgentOverride',
-  'Runtime.evaluate',
-  'Runtime.getProperties',
-  'Clipboard.readText',
-  'Clipboard.writeText',
-])
+const CDP_COMMAND_DENYLIST_PREFIXES = [
+  'Target.',
+  'Browser.',
+  'SystemInfo.',
+  'IO.',
+  'Fetch.',
+  'Debugger.',
+  'HeapProfiler.',
+  'Profiler.',
+  'ServiceWorker.',
+  'IndexedDB.',
+  'CacheStorage.',
+  'DOMStorage.',
+]
 
 export class Panel extends EventEmitter2 {
   private static readonly viewType = 'browse-lite'
@@ -175,7 +156,7 @@ export class Panel extends EventEmitter2 {
         if (this.browserPage) {
           try {
             if (msg.type !== 'extension.appStateChanged') {
-              if (!msg.type.startsWith('extension.') && !CDP_COMMAND_WHITELIST.has(msg.type))
+              if (!msg.type.startsWith('extension.') && CDP_COMMAND_DENYLIST_PREFIXES.some(p => msg.type.startsWith(p)))
                 return
               this.browserPage.send(msg.type, msg.params, msg.callbackId)
             }
