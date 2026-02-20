@@ -8,6 +8,13 @@ import { EventEmitter2 } from 'eventemitter2'
 import { commands, env, Position, Selection, Uri, ViewColumn, window, workspace } from 'vscode'
 import { ContentProvider } from './ContentProvider'
 
+const CDP_EVENT_DENYLIST_PREFIXES = [
+  'Network.',
+  'Fetch.',
+  'Security.',
+  'Storage.',
+]
+
 const CDP_COMMAND_WHITELIST = new Set([
   'Page.enable',
   'Page.navigate',
@@ -77,8 +84,11 @@ export class Panel extends EventEmitter2 {
       this.browserPage = await this.browser.newPage()
       if (this.browserPage) {
         this.browserPage.else((data: any) => {
-          if (this._panel)
+          if (this._panel) {
+            if (data.method && CDP_EVENT_DENYLIST_PREFIXES.some((p: string) => data.method.startsWith(p)))
+              return
             this._panel.webview.postMessage(data)
+          }
         })
       }
     }
