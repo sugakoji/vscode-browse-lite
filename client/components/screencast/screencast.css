@@ -1,9 +1,3 @@
-.screencast-wrapper {
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
 img.screencast {
   -webkit-backface-visibility: hidden;
   -webkit-transform: translateZ(0); /* Chrome, Safari, Opera */
@@ -19,20 +13,4 @@ img.screencast {
   left: 0;
   max-height: unset !important;
   max-width: unset !important;
-}
-
-.screencast-input {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: inherit;
-  padding: 0;
-  border: none;
-  outline: none;
-  resize: none;
-  overflow: hidden;
-  z-index: 1;
 }
