@@ -22,7 +22,9 @@ export class BrowserPage extends EnhancedEventEmitter {
   }
 
   get id(): string {
-    return this.page.mainFrame()._id
+    // _id is the CDP frame/target ID used for DevTools WebSocket URL.
+    // It exists on CdpFrame but is not in the public type definitions.
+    return (this.page.mainFrame() as any)._id
   }
 
   public dispose() {
@@ -110,7 +112,7 @@ export class BrowserPage extends EnhancedEventEmitter {
 
     this.page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: isDarkTheme() ? 'dark' : 'light' }])
 
-    this.client = await this.page.target().createCDPSession()
+    this.client = await this.page.createCDPSession()
 
     // @ts-expect-error
     EventEmitterEnhancer.modifyInstance(this.client)

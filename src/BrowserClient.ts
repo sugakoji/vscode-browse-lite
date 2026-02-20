@@ -60,7 +60,7 @@ export class BrowserClient extends EventEmitter {
     this.browser = await puppeteer.launch({
       executablePath: chromePath,
       args: chromeArgs,
-      ignoreHTTPSErrors,
+      acceptInsecureCerts: ignoreHTTPSErrors,
       ignoreDefaultArgs: ['--mute-audio'],
       userDataDir,
     })
