@@ -4,18 +4,20 @@ import './screencast.css'
 // This implementation is heavily inspired by https://cs.chromium.org/chromium/src/third_party/blink/renderer/devtools/front_end/screencast/ScreencastView.js
 
 class Screencast extends React.Component<any, any> {
-  private canvasRef: React.RefObject<HTMLCanvasElement>
   private imageRef: React.RefObject<HTMLImageElement>
+  private textareaRef: React.RefObject<HTMLTextAreaElement>
   private frameId: number | null
 
   constructor(props: any) {
     super(props)
-    this.canvasRef = React.createRef()
     this.imageRef = React.createRef()
+    this.textareaRef = React.createRef()
     this.frameId = null
 
     this.handleMouseEvent = this.handleMouseEvent.bind(this)
     this.handleKeyEvent = this.handleKeyEvent.bind(this)
+    this.handleCompositionEnd = this.handleCompositionEnd.bind(this)
+    this.handleContextMenu = this.handleContextMenu.bind(this)
     this.renderLoop = this.renderLoop.bind(this)
 
     this.state = {
@@ -56,38 +58,49 @@ class Screencast extends React.Component<any, any> {
   }
 
   public render() {
-    const canvasStyle = {
+    const cursorStyle = {
       cursor: this.props.viewportMetadata?.cursor || 'auto',
     }
     const base64Data = this.props.frame?.base64Data
     const format = this.props.format
 
     return (
-      <img
-        className="screencast"
-        src={`data:image/${format};base64,${base64Data}`}
-        ref={this.imageRef}
-        style={canvasStyle}
-        width={this.props.width}
-        draggable="false"
-        onMouseDown={this.handleMouseEvent}
-        onMouseUp={this.handleMouseEvent}
-        onMouseMove={this.handleMouseEvent}
-        onClick={this.handleMouseEvent}
-        onWheel={this.handleMouseEvent}
-        onKeyDown={this.handleKeyEvent}
-        onKeyUp={this.handleKeyEvent}
-        onContextMenu={this.handleContextMenu}
-        tabIndex={0}
-      />
+      <>
+        <img
+          className="screencast"
+          src={`data:image/${format};base64,${base64Data}`}
+          ref={this.imageRef}
+          width={this.props.width}
+          draggable="false"
+        />
+        <textarea
+          ref={this.textareaRef}
+          className="screencast-input"
+          style={cursorStyle}
+          onMouseDown={this.handleMouseEvent}
+          onMouseUp={this.handleMouseEvent}
+          onMouseMove={this.handleMouseEvent}
+          onClick={this.handleMouseEvent}
+          onWheel={this.handleMouseEvent}
+          onKeyDown={this.handleKeyEvent}
+          onKeyUp={this.handleKeyEvent}
+          onCompositionEnd={this.handleCompositionEnd}
+          onContextMenu={this.handleContextMenu}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          tabIndex={0}
+        />
+      </>
     )
   }
 
-  private handleContextMenu(event: React.MouseEvent<HTMLImageElement>) {
+  private handleContextMenu(event: React.MouseEvent<HTMLElement>) {
     event.preventDefault()
   }
 
-  private handleMouseEvent(event: React.MouseEvent<HTMLImageElement>) {
+  private handleMouseEvent(event: React.MouseEvent<HTMLElement>) {
     event.stopPropagation()
     if (this.props.isInspectEnabled) {
       if (event.type === 'click') {
@@ -113,17 +126,12 @@ class Screencast extends React.Component<any, any> {
         position,
       })
     }
-
-    if (event.type === 'mousedown') {
-      if (this.canvasRef.current)
-        this.canvasRef.current.focus()
-    }
   }
 
   private convertIntoScreenSpace(event: any, state: any) {
     let screenOffsetTop = 0
-    if (this.canvasRef && this.canvasRef.current)
-      screenOffsetTop = this.canvasRef.current.getBoundingClientRect().top
+    if (this.imageRef && this.imageRef.current)
+      screenOffsetTop = this.imageRef.current.getBoundingClientRect().top
 
     const { screenZoom } = this.props.viewportMetadata
     const { scrollOffsetX, scrollOffsetY } = this.props.frame.metadata
@@ -134,16 +142,32 @@ class Screencast extends React.Component<any, any> {
     }
   }
 
-  private handleKeyEvent(event: React.KeyboardEvent<HTMLImageElement>) {
+  private handleKeyEvent(event: React.KeyboardEvent<HTMLTextAreaElement>) {
     // Prevents events from penetrating into toolbar input
     event.stopPropagation()
+
+    // Skip IME composition keystrokes — they will be handled by compositionend
+    if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229)
+      return
+
     this.emitKeyEvent(event.nativeEvent)
 
     if (event.key === 'Tab')
       event.preventDefault()
 
-    if (this.canvasRef.current)
-      this.canvasRef.current.focus()
+    // Prevent characters from appearing in the hidden textarea
+    event.preventDefault()
+  }
+
+  private handleCompositionEnd(event: React.CompositionEvent<HTMLTextAreaElement>) {
+    event.stopPropagation()
+    const text = event.data
+    if (text)
+      this.props.onInteraction('Input.insertText', { text })
+
+    // Clear the textarea so composed text doesn't accumulate
+    if (this.textareaRef.current)
+      this.textareaRef.current.value = ''
   }
 
   private modifiersForEvent(event: any) {

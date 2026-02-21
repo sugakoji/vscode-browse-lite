@@ -1,6 +1,6 @@
+import type { IContextMenuProps } from '../contextmenu/contextmenu-models'
 import React from 'react'
 import ContextMenu from '../contextmenu/contextmenu'
-import type { IContextMenuProps } from '../contextmenu/contextmenu-models'
 import './url-input.css'
 
 interface IUrlInputState {

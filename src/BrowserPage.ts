@@ -1,5 +1,5 @@
-import EventEmitterEnhancer, { EnhancedEventEmitter } from 'event-emitter-enhancer'
 import type { Browser, CDPSession, Page } from 'puppeteer-core'
+import EventEmitterEnhancer, { EnhancedEventEmitter } from 'event-emitter-enhancer'
 import { Clipboard } from './Clipboard'
 import { isDarkTheme } from './Config'
 

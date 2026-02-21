@@ -1,8 +1,8 @@
-import { join } from 'path'
-import fs from 'fs'
 import type { Webview } from 'vscode'
-import { Uri } from 'vscode'
 import type { ExtensionConfiguration } from './ExtensionConfiguration'
+import fs from 'fs'
+import { join } from 'path'
+import { Uri } from 'vscode'
 
 export class ContentProvider {
   constructor(private config: ExtensionConfiguration) { }

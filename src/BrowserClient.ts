@@ -1,16 +1,16 @@
+import type { Browser } from 'puppeteer-core'
+import type { ExtensionContext } from 'vscode'
+import type { ExtensionConfiguration } from './ExtensionConfiguration'
 import { EventEmitter } from 'events'
-import { platform } from 'os'
 import { existsSync } from 'fs'
+import { platform } from 'os'
 import { join } from 'path'
 import edge from '@chiragrupani/karma-chromium-edge-launcher'
 import chrome from 'karma-chrome-launcher'
-import type { Browser } from 'puppeteer-core'
 import puppeteer from 'puppeteer-core'
-import type { ExtensionContext } from 'vscode'
 import { window, workspace } from 'vscode'
-import type { ExtensionConfiguration } from './ExtensionConfiguration'
-import { tryPort } from './Config'
 import { BrowserPage } from './BrowserPage'
+import { tryPort } from './Config'
 
 export class BrowserClient extends EventEmitter {
   private browser: Browser
